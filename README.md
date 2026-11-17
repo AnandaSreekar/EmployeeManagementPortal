@@ -2,6 +2,12 @@
 
 A full-stack employee management application with role-based access control.
 
+|     Component             |Platform|                               |Link |
+|------------------------|  |------|    |-------------------------------------------------------------------------|
+| **Frontend Application** | Vercel |   [Open Frontend](https://employee-management-portal-three-eta.vercel.app/) |
+| **Backend API**          | Render |   [Open Backend](https://employeemanagementportal-ggxe.onrender.com/) |
+| **Backend Health Check** | Render |   [Check Health](https://employeemanagementportal-ggxe.onrender.com/actuator/health) |
+
 ## Tech Stack
 
 **Frontend**
