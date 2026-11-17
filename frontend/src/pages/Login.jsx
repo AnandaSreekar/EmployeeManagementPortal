@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,6 +15,7 @@ import './Login.css';
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,11 +33,7 @@ function Login() {
         password
       });
 
-      const { token, role } = response.data;
-
-      sessionStorage.setItem('token', token);
-      sessionStorage.setItem('role', role);
-      sessionStorage.removeItem('oauth-session');
+      const { role } = response.data;
 
       if (role === 'ADMIN') {
         navigate('/admin');
@@ -98,6 +96,8 @@ function Login() {
             Enter your details to continue.
           </p>
 
+          {location.state?.message && <p className="login-success" role="status">{location.state.message}</p>}
+
           <form onSubmit={handleLogin}>
             <label>Email address</label>
 
@@ -151,7 +151,7 @@ function Login() {
           </button>
 
           <p className="login-footer">
-            New to the portal? Contact your administrator.
+            Don't have an account? <Link to="/register">Create an account</Link>
           </p>
 
         </div>

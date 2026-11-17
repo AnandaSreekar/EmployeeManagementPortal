@@ -3,6 +3,8 @@ package com.sreekar.employeemanagementportal.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Locale;
+import java.nio.charset.StandardCharsets;
 
 import com.sreekar.employeemanagementportal.dto.RegisterRequest;
 import com.sreekar.employeemanagementportal.dto.LoginRequest;
@@ -29,7 +31,11 @@ public class UserService {
 
     public User registerUser(RegisterRequest request) {
 
-        String email = request.getEmail().trim().toLowerCase();
+        if (request.getPassword().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Password must not exceed 72 UTF-8 bytes");
+        }
+
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered");
         }
@@ -45,7 +51,7 @@ public class UserService {
 
     public AuthResponse loginUser(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail().trim().toLowerCase())
+        User user = userRepository.findByEmail(request.getEmail().trim().toLowerCase(Locale.ROOT))
                 .orElseThrow(() ->
                         new IllegalArgumentException("Invalid email or password"));
 

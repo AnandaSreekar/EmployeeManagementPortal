@@ -98,6 +98,32 @@ class SecurityIntegrationTests {
     }
 
     @Test
+    void registrationAlwaysAssignsUserRoleAndRejectsDuplicateEmail() throws Exception {
+        String payload = "{\"name\":\"Role Check\",\"email\":\"role.check@example.com\",\"password\":\"StrongPass123!\",\"role\":\"ADMIN\"}";
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(cookie().doesNotExist("ACCESS_TOKEN"));
+
+        User created = userRepository.findByEmail("role.check@example.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals("USER", created.getRole());
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void registrationRejectsInvalidEmailAndWeakPassword() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Invalid\",\"email\":\"not-an-email\",\"password\":\"weakpass\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void adminCanCreateReadUpdateAndDeleteEmployeeRecords() throws Exception {
         String employeeJson = "{\"employeeCode\":\"EMP-TEST-1\",\"department\":\"Engineering\",\"designation\":\"Developer\",\"phone\":\"5550100\",\"joiningDate\":\"2026-01-15\"}";
         var created = mockMvc.perform(post("/api/admin/employees")

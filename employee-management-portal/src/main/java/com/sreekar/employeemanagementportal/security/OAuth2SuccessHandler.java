@@ -2,6 +2,7 @@ package com.sreekar.employeemanagementportal.security;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -49,13 +50,20 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User googleUser = (OAuth2User) authentication.getPrincipal();
         
-        String email = googleUser.getAttribute("email");
+        String googleEmail = googleUser.getAttribute("email");
         String name = googleUser.getAttribute("name");
+        Boolean emailVerified = googleUser.getAttribute("email_verified");
+
+        if (googleEmail == null || !Boolean.TRUE.equals(emailVerified)) {
+            response.sendRedirect(frontendUrl.replaceAll("/$", "") + "/login?error=google-email-unverified");
+            return;
+        }
+        String email = googleEmail.trim().toLowerCase(Locale.ROOT);
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = new User();
-                    newUser.setName(name);
+                    newUser.setName(name == null || name.isBlank() ? email : name.trim());
                     newUser.setEmail(email);
                     newUser.setRole("USER");
                     return userRepository.save(newUser);

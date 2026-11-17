@@ -3,6 +3,7 @@ package com.sreekar.employeemanagementportal.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -46,6 +47,9 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Email already registered");
         }
     }
 

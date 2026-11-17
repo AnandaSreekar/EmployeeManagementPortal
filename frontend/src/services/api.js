@@ -13,13 +13,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token');
-
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
   if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())
       && !config.url?.startsWith('/api/auth/')) {
     const csrfToken = sessionStorage.getItem('csrf-token');

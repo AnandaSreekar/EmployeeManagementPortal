@@ -162,6 +162,9 @@
   font-size: 11px;
 }
 
+.login-footer a { color: var(--color-orange); font-weight: 600; }
+.login-success { color: #28734a; font-size: 13px; margin: 0 0 16px; }
+
 @media (max-width: 768px) {
   .login-page {
     padding: 0 5%;

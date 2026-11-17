@@ -3,6 +3,7 @@ package com.sreekar.employeemanagementportal.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public class RegisterRequest {
 
@@ -10,7 +11,9 @@ public class RegisterRequest {
     private String name;
     @NotBlank @Email @Size(max = 254)
     private String email;
-    @NotBlank @Size(min = 8, max = 100)
+    @NotBlank @Size(min = 8, max = 72)
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+            message = "Password must include uppercase, lowercase, and numeric characters")
     private String password;
 
     public RegisterRequest() {

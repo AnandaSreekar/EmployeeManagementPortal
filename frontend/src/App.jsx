@@ -1,20 +1,39 @@
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Users, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import OAuthSuccess from './pages/OAuthSuccess';
+import api from './services/api';
 import './App.css';
 
 function ProtectedRoute({ role, children }) {
   const location = useLocation();
-  const currentRole = sessionStorage.getItem('role');
-  const hasToken = Boolean(sessionStorage.getItem('token'));
-  const cookieSession = sessionStorage.getItem('oauth-session') === 'true';
+  const [currentRole, setCurrentRole] = useState(null);
+  const [checking, setChecking] = useState(true);
 
-  if (!hasToken && !cookieSession) return <Navigate to="/login" replace state={{ from: location }} />;
+  useEffect(() => {
+    let active = true;
+    api.get('/api/test/profile').then(({ data }) => {
+      if (active) setCurrentRole(data.role);
+    }).catch(() => {
+      if (active) setCurrentRole('');
+    }).finally(() => {
+      if (active) setChecking(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  if (checking) return <main className="oauth-success">Checking your session…</main>;
+  if (!currentRole) return <Navigate to="/login" replace state={{ from: location }} />;
   if (role === 'ADMIN' && currentRole !== 'ADMIN') return <Navigate to="/user" replace />;
-  if (role === 'USER' && currentRole === 'ADMIN') return <Navigate to="/admin" replace />;
+  if (role === 'USER' && currentRole !== 'USER') {
+    return currentRole === 'ADMIN'
+      ? <Navigate to="/admin" replace />
+      : <Navigate to="/login" replace />;
+  }
   return children;
 }
 
@@ -94,6 +113,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/user" element={<ProtectedRoute role="USER"><UserDashboard /></ProtectedRoute>} />
         <Route path="/oauth2/success" element={<OAuthSuccess />} />

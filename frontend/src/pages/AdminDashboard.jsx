@@ -9,6 +9,7 @@ const emptyForm = { employeeCode: '', department: '', designation: '', phone: ''
 function AdminDashboard() {
   const [employees, setEmployees] = useState([]);
   const [users, setUsers] = useState([]);
+  const [adminName, setAdminName] = useState('Administrator');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -36,6 +37,14 @@ function AdminDashboard() {
     const timer = window.setTimeout(() => { void loadDirectory(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadDirectory]);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/test/profile').then(({ data }) => {
+      if (active) setAdminName(data.name || 'Administrator');
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   const departments = useMemo(() => new Set(employees.map((employee) => employee.department).filter(Boolean)).size, [employees]);
   const filteredEmployees = useMemo(() => {
@@ -99,7 +108,7 @@ function AdminDashboard() {
 
       <section className="dashboard-content">
         <p className="eyebrow">PEOPLE & CULTURE / ADMINISTRATION</p>
-        <h1 className="dashboard-title">Good morning,<br /><span>Administrator.</span></h1>
+        <h1 className="dashboard-title">Good morning,<br /><span>{adminName}.</span></h1>
         <p className="dashboard-subtitle">Manage your people and keep employee records organised.</p>
 
         <div className="stats-grid">

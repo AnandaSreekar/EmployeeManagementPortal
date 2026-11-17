@@ -12,8 +12,6 @@ function OAuthSuccess() {
     let active = true;
     api.get('/api/test/profile').then(({ data }) => {
       if (!active) return;
-      sessionStorage.setItem('role', data.role);
-      sessionStorage.setItem('oauth-session', 'true');
       navigate(data.role === 'ADMIN' ? '/admin' : '/user', { replace: true });
     }).catch(() => {
       if (active) setError('Google sign-in could not be verified. Please sign in again.');
