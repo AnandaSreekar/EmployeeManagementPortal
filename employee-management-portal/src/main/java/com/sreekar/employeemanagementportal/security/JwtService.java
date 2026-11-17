@@ -2,6 +2,7 @@
 package com.sreekar.employeemanagementportal.security;
 
 import java.util.Date;
+import java.util.Base64;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,16 +14,22 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final SecretKey signingKey;
+    private final long expiration;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(
-                java.util.Base64.getDecoder().decode(secret)
-        );
+    public JwtService(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration}") long expiration) {
+        try {
+            this.signingKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must be Base64 encoding of at least 32 random bytes.");
+        }
+        if (expiration <= 0) {
+            throw new IllegalStateException("JWT_EXPIRATION must be a positive number of milliseconds.");
+        }
+        this.expiration = expiration;
     }
 
     public String generateToken(String email) {
@@ -31,14 +38,14 @@ public class JwtService {
                 .subject(email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey())
+                .signWith(signingKey)
                 .compact();
     }
 
     public String extractEmail(String token) {
 
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()

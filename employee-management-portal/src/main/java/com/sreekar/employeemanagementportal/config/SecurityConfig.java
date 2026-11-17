@@ -27,6 +27,12 @@ public class SecurityConfig {
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
+    @Value("${app.cors.include-localhost:true}")
+    private boolean includeLocalhost;
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -42,6 +48,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
+        CookieCsrfTokenRepository csrfTokenRepository =
+                CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfTokenRepository.setCookieCustomizer(cookie -> cookie
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite));
+
         http
             .cors(Customizer.withDefaults())
 
@@ -51,9 +63,7 @@ public class SecurityConfig {
 
             .csrf(csrf -> csrf
 	                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-            	    .csrfTokenRepository(
-            	        CookieCsrfTokenRepository.withHttpOnlyFalse()
-            	    )
+             	.csrfTokenRepository(csrfTokenRepository)
 	            	.ignoringRequestMatchers("/api/auth/**")
 	            	.ignoringRequestMatchers(request -> {
 	            	    String authorization = request.getHeader("Authorization");
@@ -107,8 +117,10 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        List<String> allowedOrigins = new ArrayList<>(List.of(
-                "http://localhost:5173", "http://localhost:5174"));
+        List<String> allowedOrigins = new ArrayList<>();
+        if (includeLocalhost) {
+            allowedOrigins.addAll(List.of("http://localhost:5173", "http://localhost:5174"));
+        }
         if (frontendUrl != null && !frontendUrl.isBlank()
                 && !allowedOrigins.contains(frontendUrl)) {
             allowedOrigins.add(frontendUrl);

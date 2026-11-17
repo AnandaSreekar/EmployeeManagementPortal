@@ -18,13 +18,15 @@ Database schema handling defaults to `update` to preserve existing data. Review 
 
 ## Environment variables
 
-See `.env.example`. `DATABASE_URL` must be a JDBC URL (`jdbc:postgresql://host:5432/database`). `JWT_SECRET` must be Base64 encoded and decode to at least 32 bytes. Production should set `COOKIE_SECURE=true` and `COOKIE_SAME_SITE=None` when the frontend and API use different sites over HTTPS. Set `FRONTEND_URL` to the exact deployed frontend origin, with no path.
+See `.env.example`. For Neon, use a JDBC URL such as `jdbc:postgresql://YOUR-POOLED-HOST.neon.tech/YOUR_DATABASE?sslmode=require`; copy the pooled hostname, database name, username, and password from Neon’s Connect panel. `DATABASE_USERNAME` and `DATABASE_PASSWORD` remain separate environment variables. `JWT_SECRET` must be Base64 encoding of at least 32 random bytes; the application validates it on startup. Production uses a one-hour JWT expiration unless `JWT_EXPIRATION` is set.
 
 ## Deploying the backend
 
-The included Dockerfile builds the executable WAR and runs it on the platform-provided `PORT`. On Render, create a Web Service from this directory and choose Docker. Attach a PostgreSQL database and provide its JDBC connection URL, username, and password as `DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD`. Add the remaining production variables in the hosting dashboard; never commit a real `.env` file.
+The included Dockerfile builds the executable WAR and runs it on the platform-provided `PORT`. It activates the `prod` profile, defaults cookies to `Secure; SameSite=None`, excludes localhost from production CORS, and limits JVM heap sizing for Render’s 512 MB free instance. On Render, create a Web Service from this directory and choose Docker. Set `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `FRONTEND_URL` in the service environment. `DATABASE_URL` should use Neon’s pooled JDBC hostname and `sslmode=require`. Set `FRONTEND_URL` to the exact Vercel production origin with no trailing slash. Never commit `.env` or credentials.
 
-Set `JPA_DDL_AUTO=update` only if that is your deliberate migration strategy; use a managed migration process for production schema changes. Health check path: `/actuator/health`.
+Render Free is suitable for a preview or low-traffic hobby deployment, not a durable production service: it can spin down after 15 minutes idle and has 512 MB RAM; plan for cold starts and intermittent restarts. Neon provides the persistent database, but use appropriate backups and service plans for production data.
+
+`JPA_DDL_AUTO` defaults to `update` to keep a new Neon database compatible with the existing entity schema. Use a managed migration process before switching to `validate`. Health check path: `/actuator/health`.
 
 For a new database, set `BOOTSTRAP_ADMIN_EMAIL` and a unique `BOOTSTRAP_ADMIN_PASSWORD` (12–72 UTF-8 bytes) for the first startup. The app creates an ADMIN only if that email is absent; it never elevates an existing USER or changes an existing admin password. Remove both variables after confirming the administrator can sign in. Public registration always creates USER accounts.
 
