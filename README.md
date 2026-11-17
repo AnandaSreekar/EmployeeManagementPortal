@@ -1,12 +1,23 @@
 # Employee Management Portal
 
 A full-stack employee management application with role-based access control.
+## 🌐 Live Deployment
 
-|     Component             |Platform|                               |Link |
-|------------------------|  |------|    |-------------------------------------------------------------------------|
-| **Frontend Application** | Vercel |   [Open Frontend](https://employee-management-portal-three-eta.vercel.app/) |
-| **Backend API**          | Render |   [Open Backend](https://employeemanagementportal-ggxe.onrender.com/) |
-| **Backend Health Check** | Render |   [Check Health](https://employeemanagementportal-ggxe.onrender.com/actuator/health) |
+**🖥️ Frontend – React Application**
+
+https://employee-management-portal-three-eta.vercel.app/
+
+**⚙️ Backend – Spring Boot API**
+
+https://employeemanagementportal-ggxe.onrender.com/
+
+**💚 Backend Health Check**
+
+https://employeemanagementportal-ggxe.onrender.com/actuator/health
+
+**Deployment Platforms:** Vercel · Render · Neon PostgreSQL
+
+
 
 ## Tech Stack
 
