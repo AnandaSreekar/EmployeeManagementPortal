@@ -19,6 +19,7 @@ function UserDashboard() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [profilePending, setProfilePending] = useState(false);
 
   const logout = async () => {
     try { await api.post('/api/auth/logout'); } catch { /* Clear the local session even if the server is unavailable. */ }
@@ -32,11 +33,19 @@ function UserDashboard() {
         const response = await api.get('/api/user/my-profile');
         setProfile(response.data);
       } catch (err) {
-        setError(
-          typeof err.response?.data === 'string'
-            ? err.response.data
-            : err.response?.data?.message || 'Unable to load employee details.'
-        );
+        const responseMessage = typeof err.response?.data === 'string'
+          ? err.response.data
+          : err.response?.data?.message;
+        const profileNotLinked = err.response?.status === 404
+          || responseMessage?.trim() === 'Employee profile not found';
+
+        if (profileNotLinked) {
+          setProfilePending(true);
+        } else {
+          setError(
+            responseMessage || 'Unable to load employee details.'
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -50,7 +59,34 @@ function UserDashboard() {
   }
 
   if (error) {
-    return <main className="dashboard-page">{error}</main>;
+    return (
+      <main className="dashboard-page">
+        <header className="dashboard-header">
+          <h2 className="brand">people<span>.</span></h2>
+          <button className="icon-button" onClick={logout} aria-label="Sign out"><LogOut size={18} /></button>
+        </header>
+        <section className="dashboard-content"><p role="alert">{error}</p></section>
+      </main>
+    );
+  }
+
+  if (profilePending) {
+    return (
+      <main className="dashboard-page">
+        <header className="dashboard-header">
+          <h2 className="brand">people<span>.</span></h2>
+          <div className="header-actions">
+            <span className="admin-label">EMPLOYEE PORTAL</span>
+            <button className="icon-button" onClick={logout} aria-label="Sign out"><LogOut size={18} /></button>
+          </div>
+        </header>
+        <section className="dashboard-content">
+          <p className="eyebrow">ACCOUNT STATUS</p>
+          <h1 className="dashboard-title">Welcome to your workspace.</h1>
+          <p role="status">Your account has been created successfully. Your employee profile has not been created or linked yet. Please contact your administrator.</p>
+        </section>
+      </main>
+    );
   }
 
   return (
